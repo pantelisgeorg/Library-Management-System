@@ -50,6 +50,7 @@ Thumbs.db
 ### Project Specific ###
 # Local configuration
 **/src/main/resources/application-local.properties
+**/src/main/resources/application.properties
 
 # Local AI/Claude session notes
 sessions/
