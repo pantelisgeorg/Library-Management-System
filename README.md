@@ -1,0 +1,131 @@
+# Library Management System
+
+A Spring Boot web application for managing a library: books, authors, users and
+book borrowings, with an admin dashboard, full CRUD web UI and an
+auto-generated REST API backed by PostgreSQL.
+
+## Tech Stack
+
+- Java 17, Spring Boot 3.3
+- Spring Web + Thymeleaf (server-rendered UI, Bootstrap 5 via CDN)
+- Spring Data JPA (Hibernate 6)
+- **PostgreSQL** (JDBC driver: `org.postgresql:postgresql`)
+- Spring Data REST (`/api` endpoints, HAL/JSON)
+- Maven
+
+## Prerequisites
+
+- JDK 17
+- Maven 3.8+ (a system-wide `mvn` is used; there is no bundled wrapper)
+- A running PostgreSQL server
+
+## Database Setup
+
+The app connects to a database named `library_db` and stores all tables in a
+schema named `libdb` (the entities use `@Table(schema = "libdb")`).
+
+One-time setup (using your own credentials in place of `user`/`password`):
+
+```sql
+CREATE DATABASE library_db;
+CREATE SCHEMA libdb;           -- connect to library_db first
+CREATE USER user WITH PASSWORD 'password';
+GRANT ALL PRIVILEGES ON DATABASE library_db TO user;
+GRANT ALL ON SCHEMA libdb TO user;
+```
+
+Then set the connection details in
+`src/main/resources/application.properties`:
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/library_db
+spring.datasource.username=user
+spring.datasource.password=password
+```
+
+On first start, Hibernate creates all tables (`spring.jpa.hibernate.ddl-auto=update`)
+and the seeder (`AppRunner`) inserts demo data once: 2 authors, 2 books, 3 users
+(admin / librarian / john.doe) and a sample borrowing, including the
+author-book associations.
+
+## Running
+
+```bash
+mvn spring-boot:run
+```
+
+Then open:
+
+| Page        | URL                  | Description                                        |
+|-------------|----------------------|----------------------------------------------------|
+| Dashboard   | http://localhost:8080/            | Stats: total users, books, authors, active borrowings |
+| Data Tables | http://localhost:8080/tables       | Full management UI (see below)                     |
+| Charts      | http://localhost:8080/charts       | Activity charts (Chart.js)                        |
+| REST API    | http://localhost:8080/api          | HAL index of the auto-generated REST API           |
+
+## Web UI Features (`/tables`)
+
+- **Books** — add (modal form: title, ISBN, published date, genre, copies,
+  summary) and delete (removes borrow history and author links first)
+- **Authors** — add and delete (join rows cleaned up automatically)
+- **Users** — add (role picker: Member / Librarian / Admin, duplicate
+  username/email protection) and delete (removes borrow history first)
+- **Borrowings** — "Borrow Book" dialog (member + available-book dropdowns,
+  due date = +14 days, decrements available copies) and "Return" per row
+  (sets return date, restores the copy)
+
+All actions show success/error feedback banners.
+
+## REST API (`/api`)
+
+Spring Data REST exposes the repositories automatically:
+
+- `GET /api` — endpoint index
+- `GET /api/books`, `/api/authors`, `/api/users`, `/api/borrowings`,
+  `/api/bookAuthors` — paginated collections (`?page`, `?size`, `?sort`)
+- `GET /api/books/{id}` — single item; `POST`/`PUT`/`PATCH`/`DELETE` for CRUD
+- Search endpoints, e.g.
+  `GET /api/borrowings/search/findByStatus?status=BORROWED`,
+  `GET /api/users/search/findByUsername?username=admin`
+- `GET /api/profile` — API metadata
+
+User passwords are write-only (`@JsonProperty(access = WRITE_ONLY)`) and are
+never included in API responses.
+
+> **Note:** there is no authentication/authorization (no Spring Security) —
+> both the web UI and the REST API are open. Fine for local development;
+> add security before exposing this publicly.
+
+## Project Structure
+
+```
+src/main/java/com/library/management/
+  LibraryManagementSystemApplication.java   # entry point
+  AdminDashboardController.java              # web pages + CRUD endpoints
+  RestApiConfig.java                        # serves Data REST under /api
+  AppRunner.java                             # seeds demo data once
+  Book, Author, User, Borrowing             # JPA entities
+  BookAuthor, BookAuthorId                   # join-table entity
+  *Repository                               # Spring Data repositories
+src/main/resources/
+  application.properties                    # config (DB credentials, JPA, logging)
+  templates/index.html                      # dashboard
+  templates/tables.html                     # management UI (modals, action buttons)
+  templates/charts.html                     # Chart.js page
+```
+
+## Configuration Notes
+
+- `spring.jpa.hibernate.ddl-auto=update` — Hibernate syncs the schema with the
+  entities. Switch to `validate` once the schema is stable.
+- All entity tables live in the `libdb` schema.
+- SQL logging is verbose (dev-friendly); see `application.properties`.
+- CI (`.github/workflows/maven-publish.yml`) builds with JDK 17 and publishes
+  to GitHub Packages on release.
+
+## Build & Test
+
+```bash
+mvn clean package     # compiles, runs tests, produces target/*.jar
+java -jar target/library-management-system-0.0.1-SNAPSHOT.jar
+```
