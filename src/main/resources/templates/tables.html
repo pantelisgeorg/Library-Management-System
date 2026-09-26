@@ -83,8 +83,8 @@
                             /
                             <span th:text="${book.totalCopies}"></span>
                         </td>
-                        <td>
-                            <form th:action="@{'/books/' + ${book.id} + '/delete'}" method="post"
+                        <td class="align-middle">
+                            <form class="d-inline m-0" th:action="@{'/books/' + ${book.id} + '/delete'}" method="post"
                                   onsubmit="return confirm('Delete this book and its borrow history?');">
                                 <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                             </form>
@@ -116,8 +116,8 @@
                         <td th:text="${author.name}"></td>
                         <td class="text-truncate" style="max-width: 400px;" th:text="${author.bio}"></td>
                         <td th:text="${#lists.size(author.books)}"></td>
-                        <td>
-                            <form th:action="@{'/authors/' + ${author.id} + '/delete'}" method="post"
+                        <td class="align-middle">
+                            <form class="d-inline m-0" th:action="@{'/authors/' + ${author.id} + '/delete'}" method="post"
                                   onsubmit="return confirm('Delete this author?');">
                                 <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                             </form>
@@ -154,8 +154,8 @@
                                   th:text="${user.role}"></span>
                         </td>
                         <td th:text="${user.createdAt} ?: '—'"></td>
-                        <td>
-                            <form th:action="@{'/users/' + ${user.id} + '/delete'}" method="post"
+                        <td class="align-middle">
+                            <form class="d-inline m-0" th:action="@{'/users/' + ${user.id} + '/delete'}" method="post"
                                   onsubmit="return confirm('Delete this user and their borrow history?');">
                                 <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                             </form>
@@ -194,8 +194,8 @@
                                   th:classappend="${borrowing.status.name() == 'BORROWED'} ? 'bg-primary' : (${borrowing.status.name() == 'RETURNED'} ? 'bg-success' : 'bg-warning text-dark')"
                                   th:text="${borrowing.status}"></span>
                         </td>
-                        <td>
-                            <form th:if="${borrowing.status.name() == 'BORROWED'}"
+                        <td class="align-middle">
+                            <form class="d-inline m-0" th:if="${borrowing.status.name() == 'BORROWED'}"
                                   th:action="@{'/borrowings/' + ${borrowing.id} + '/return'}" method="post">
                                 <button class="btn btn-sm btn-outline-success"><i class="bi bi-check-lg"></i> Return</button>
                             </form>
