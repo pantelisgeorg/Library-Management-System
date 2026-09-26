@@ -139,8 +139,8 @@
         </div>
     </div>
 
-    <!-- Users -->
-    <div class="card border-0 shadow-sm mb-4">
+    <!-- Users (admins only — members must not see other users' data) -->
+    <div class="card border-0 shadow-sm mb-4" sec:authorize="hasRole('ADMIN')">
         <div class="card-header bg-white">
             <span class="fw-semibold"><i class="bi bi-people"></i> Users</span>
         </div>
@@ -219,7 +219,7 @@
 </div>
 
 <!-- Add Book Modal -->
-<div class="modal fade" id="addBookModal" tabindex="-1">
+<div class="modal fade" id="addBookModal" tabindex="-1" sec:authorize="hasRole('ADMIN')">
     <div class="modal-dialog">
         <form class="modal-content" th:action="@{/books/add}" method="post">
             <div class="modal-header">
@@ -263,7 +263,7 @@
 </div>
 
 <!-- Add Author Modal -->
-<div class="modal fade" id="addAuthorModal" tabindex="-1">
+<div class="modal fade" id="addAuthorModal" tabindex="-1" sec:authorize="hasRole('ADMIN')">
     <div class="modal-dialog">
         <form class="modal-content" th:action="@{/authors/add}" method="post">
             <div class="modal-header">
@@ -289,7 +289,7 @@
 </div>
 
 <!-- Add User Modal -->
-<div class="modal fade" id="addUserModal" tabindex="-1">
+<div class="modal fade" id="addUserModal" tabindex="-1" sec:authorize="hasRole('ADMIN')">
     <div class="modal-dialog">
         <form class="modal-content" th:action="@{/users/add}" method="post">
             <div class="modal-header">
@@ -326,7 +326,7 @@
 </div>
 
 <!-- Borrow Book Modal -->
-<div class="modal fade" id="borrowModal" tabindex="-1">
+<div class="modal fade" id="borrowModal" tabindex="-1" sec:authorize="hasRole('ADMIN')">
     <div class="modal-dialog">
         <form class="modal-content" th:action="@{/borrowings/add}" method="post">
             <div class="modal-header">

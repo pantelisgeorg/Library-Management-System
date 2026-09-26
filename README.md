@@ -75,7 +75,7 @@ There are two roles:
 | Role   | Can do |
 |--------|--------|
 | ADMIN  | Everything: view all pages, add/delete books, authors and users, borrow and return books, use the REST API (`/api`) |
-| MEMBER | Log in and browse the dashboard, tables and charts **read-only** — no actions, no REST API |
+| MEMBER | Log in and browse the dashboard, charts and the books / authors / borrowings tables **read-only** — no actions, no REST API, and the Users table (other people's accounts) is hidden |
 
 Borrowing is done **by the admin** on behalf of a member (the "Borrow Book" dialog
 picks a member and an available book).
