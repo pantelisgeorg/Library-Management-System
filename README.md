@@ -148,3 +148,10 @@ src/main/resources/
 mvn clean package     # compiles, runs tests, produces target/*.jar
 java -jar target/library-management-system-0.0.1-SNAPSHOT.jar
 ```
+
+## License
+
+This project is licensed under the MIT License — see the
+[LICENSE](LICENSE) file for details.
+
+Copyright (c) 2026 GEORGE PANTELIS
