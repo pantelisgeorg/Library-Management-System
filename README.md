@@ -88,9 +88,9 @@ Seeded demo accounts:
 | john.doe  | user123   | MEMBER |
 
 > **Note:** the seeded passwords are for local development only — change or remove
-> them before deploying anywhere public. If you seeded an older version of this app,
-> plain-text passwords are automatically re-hashed (BCrypt) and the removed
-> LIBRARIAN role is demoted to MEMBER on startup.
+> them before deploying anywhere public. On startup the app automatically:
+> re-hashes legacy plain-text passwords (BCrypt), demotes any old LIBRARIAN
+> accounts to MEMBER, and re-creates the demo accounts if they are missing.
 
 ## Running
 

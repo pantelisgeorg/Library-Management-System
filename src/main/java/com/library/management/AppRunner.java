@@ -56,74 +56,67 @@ public class AppRunner implements ApplicationRunner {
             }
         }
 
-        // Seed demo data only once (avoid duplicates on every restart)
-        if (bookRepository.count() > 0 || userRepository.count() > 0) {
-            return;
+        // Seed demo books/authors only once (avoid duplicates on every restart)
+        boolean freshDatabase = bookRepository.count() == 0 && authorRepository.count() == 0;
+        Book cleanCoder = null;
+        if (freshDatabase) {
+            // Create Authors
+            Author uncleBob = createAuthor(
+                    "Robert C. Martin",
+                    "Also known as Uncle Bob, is a software engineer and author."
+            );
+
+            Author martinFowler = createAuthor(
+                    "Martin Fowler",
+                    "Author of books on software development"
+            );
+
+            // Create Books
+            cleanCoder = createBook(
+                    "The Clean Coder",
+                    "9780137081073",
+                    LocalDate.of(2011, 5, 13),
+                    "Programming",
+                    "A Code of Conduct for Professional Programmers",
+                    "https://example.com/clean-coder.jpg",
+                    5
+            );
+
+            Book refactoring = createBook(
+                    "Refactoring",
+                    "9780134757599",
+                    LocalDate.of(2018, 11, 30),
+                    "Programming",
+                    "Improving the Design of Existing Code",
+                    "https://example.com/refactoring.jpg",
+                    3
+            );
+
+            // Associate authors with books. The join rows are written EXPLICITLY
+            // via the BookAuthor entity - mutating the ManyToMany collections only
+            // works reliably inside a fully managed persistence context, and the
+            // seeded entities may already be detached when repository calls commit.
+            cleanCoder.getAuthors().add(uncleBob);
+            uncleBob.getBooks().add(cleanCoder);
+            refactoring.getAuthors().add(martinFowler);
+            martinFowler.getBooks().add(refactoring);
+
+            bookRepository.saveAll(Arrays.asList(cleanCoder, refactoring));
+
+            bookAuthorRepository.insertLink(uncleBob.getId(), cleanCoder.getId());
+            bookAuthorRepository.insertLink(martinFowler.getId(), refactoring.getId());
         }
 
-        // Create Authors
-        Author uncleBob = createAuthor(
-                "Robert C. Martin",
-                "Also known as Uncle Bob, is a software engineer and author."
-        );
+        // Always ensure the demo accounts exist (idempotent): the database may
+        // have been seeded by an older version without them, or they may have
+        // been deleted while testing. The README documents these credentials.
+        ensureUser("admin", "admin123", "admin@library.com", User.Role.ADMIN);
+        User member = ensureUser("john.doe", "user123", "john@example.com", User.Role.MEMBER);
 
-        Author martinFowler = createAuthor(
-                "Martin Fowler",
-                "Author of books on software development"
-        );
-
-        // Create Books
-        Book cleanCoder = createBook(
-                "The Clean Coder",
-                "9780137081073",
-                LocalDate.of(2011, 5, 13),
-                "Programming",
-                "A Code of Conduct for Professional Programmers",
-                "https://example.com/clean-coder.jpg",
-                5
-        );
-
-        Book refactoring = createBook(
-                "Refactoring",
-                "9780134757599",
-                LocalDate.of(2018, 11, 30),
-                "Programming",
-                "Improving the Design of Existing Code",
-                "https://example.com/refactoring.jpg",
-                3
-        );
-
-        // Associate authors with books. The join rows are written EXPLICITLY
-        // via the BookAuthor entity - mutating the ManyToMany collections only
-        // works reliably inside a fully managed persistence context, and the
-        // seeded entities may already be detached when repository calls commit.
-        cleanCoder.getAuthors().add(uncleBob);
-        uncleBob.getBooks().add(cleanCoder);
-        refactoring.getAuthors().add(martinFowler);
-        martinFowler.getBooks().add(refactoring);
-
-        bookRepository.saveAll(Arrays.asList(cleanCoder, refactoring));
-
-        bookAuthorRepository.insertLink(uncleBob.getId(), cleanCoder.getId());
-        bookAuthorRepository.insertLink(martinFowler.getId(), refactoring.getId());
-
-        // Create Users
-        User admin = createUser(
-                "admin",
-                "admin123",
-                "admin@library.com",
-                "ADMIN"
-        );
-
-        User member = createUser(
-                "john.doe",
-                "user123",
-                "john@example.com",
-                "MEMBER"
-        );
-
-        // Create a borrowing
-        createBorrowing(member, cleanCoder);
+        // Create a sample borrowing only on a fresh database
+        if (freshDatabase) {
+            createBorrowing(member, cleanCoder);
+        }
     }
 
     private Author createAuthor(String name, String bio) {
@@ -147,13 +140,19 @@ public class AppRunner implements ApplicationRunner {
         return book;
     }
 
-    private User createUser(String username, String password, String email, String role) {
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(password)); // BCrypt-hashed at seed time
-        user.setEmail(email);
-        user.setRole(User.Role.valueOf(role));
-        return userRepository.save(user);
+    /** Creates the demo account if it does not exist yet (password is BCrypt-hashed). */
+    private User ensureUser(String username, String password, String email, User.Role role) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            user = new User();
+            user.setUsername(username);
+            user.setPassword(passwordEncoder.encode(password));
+            user.setEmail(email);
+            user.setRole(role);
+            user.setCreatedAt(Instant.now());
+            user = userRepository.save(user);
+        }
+        return user;
     }
 
     private Borrowing createBorrowing(User user, Book book) {
