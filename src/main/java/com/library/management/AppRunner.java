@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,10 +36,26 @@ public class AppRunner implements ApplicationRunner {
     @Autowired
     private BookAuthorRepository bookAuthorRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     @Transactional  // one persistence context: entities stay managed so the
     // ManyToMany collections set below actually flush the join rows at commit
     public void run(ApplicationArguments args) throws Exception {
+        // --- Migrations for existing data (run on every startup) ---
+        // 1) The LIBRARIAN role was removed from the enum: demote any legacy rows to MEMBER
+        //    (otherwise loading them would crash with "No enum constant ... LIBRARIAN").
+        userRepository.demoteLibrarians();
+        // 2) Passwords used to be stored in plain text: BCrypt-encode them once.
+        //    Detected by the "$2" BCrypt prefix — already-encoded passwords are skipped.
+        for (User user : userRepository.findAll()) {
+            String pw = user.getPassword();
+            if (pw != null && !pw.startsWith("$2")) {
+                user.setPassword(passwordEncoder.encode(pw));
+            }
+        }
+
         // Seed demo data only once (avoid duplicates on every restart)
         if (bookRepository.count() > 0 || userRepository.count() > 0) {
             return;
@@ -98,13 +115,6 @@ public class AppRunner implements ApplicationRunner {
                 "ADMIN"
         );
 
-        User librarian = createUser(
-                "librarian",
-                "lib123",
-                "librarian@library.com",
-                "LIBRARIAN"
-        );
-
         User member = createUser(
                 "john.doe",
                 "user123",
@@ -140,7 +150,7 @@ public class AppRunner implements ApplicationRunner {
     private User createUser(String username, String password, String email, String role) {
         User user = new User();
         user.setUsername(username);
-        user.setPassword(password); // In production, use password encoder
+        user.setPassword(passwordEncoder.encode(password)); // BCrypt-hashed at seed time
         user.setEmail(email);
         user.setRole(User.Role.valueOf(role));
         return userRepository.save(user);

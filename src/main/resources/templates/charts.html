@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,6 +18,12 @@
             <a class="nav-link text-white-50" href="/"><i class="bi bi-speedometer2"></i> Dashboard</a>
             <a class="nav-link text-white-50" href="/tables"><i class="bi bi-table"></i> Tables</a>
             <a class="nav-link text-white fw-semibold" href="/charts"><i class="bi bi-bar-chart"></i> Charts</a>
+            <span class="navbar-text text-white-50 small">
+                <i class="bi bi-person-circle"></i> <span sec:authentication="name">user</span>
+            </span>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-sm btn-outline-light"><i class="bi bi-box-arrow-right"></i> Logout</button>
+            </form>
         </div>
     </div>
 </nav>

@@ -38,7 +38,7 @@ public class User {
     private Set<Borrowing> borrowings = new LinkedHashSet<>();
 
     public enum Role {
-        ADMIN, LIBRARIAN, MEMBER
+        ADMIN, MEMBER
     }
 
     public Long getId() {

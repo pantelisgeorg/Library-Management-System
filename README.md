@@ -8,6 +8,7 @@ auto-generated REST API backed by PostgreSQL.
 
 - Java 17, Spring Boot 3.3
 - Spring Web + Thymeleaf (server-rendered UI, Bootstrap 5 via CDN)
+- **Spring Security** (form login, BCrypt-hashed passwords, role-based access)
 - Spring Data JPA (Hibernate 6)
 - **PostgreSQL** (JDBC driver: `org.postgresql:postgresql`)
 - Spring Data REST (`/api` endpoints, HAL/JSON)
@@ -62,9 +63,34 @@ With those credentials in place, set them in your local
 `src/main/resources/application.properties` (see [Configuration](#configuration)).
 
 On first start, Hibernate creates all tables (`spring.jpa.hibernate.ddl-auto=update`)
-and the seeder (`AppRunner`) inserts demo data once: 2 authors, 2 books, 3 users
-(admin / librarian / john.doe) and a sample borrowing, including the
+and the seeder (`AppRunner`) inserts demo data once: 2 authors, 2 books, 2 users
+(admin / john.doe) and a sample borrowing, including the
 author-book associations.
+
+## Authentication & Roles
+
+All pages require signing in (Spring Security, form login, BCrypt-hashed passwords).
+There are two roles:
+
+| Role   | Can do |
+|--------|--------|
+| ADMIN  | Everything: view all pages, add/delete books, authors and users, borrow and return books, use the REST API (`/api`) |
+| MEMBER | Log in and browse the dashboard, tables and charts **read-only** — no actions, no REST API |
+
+Borrowing is done **by the admin** on behalf of a member (the "Borrow Book" dialog
+picks a member and an available book).
+
+Seeded demo accounts:
+
+| Username  | Password  | Role |
+|-----------|-----------|------|
+| admin     | admin123  | ADMIN |
+| john.doe  | user123   | MEMBER |
+
+> **Note:** the seeded passwords are for local development only — change or remove
+> them before deploying anywhere public. If you seeded an older version of this app,
+> plain-text passwords are automatically re-hashed (BCrypt) and the removed
+> LIBRARIAN role is demoted to MEMBER on startup.
 
 ## Running
 
@@ -110,9 +136,11 @@ Spring Data REST exposes the repositories automatically:
 User passwords are write-only (`@JsonProperty(access = WRITE_ONLY)`) and are
 never included in API responses.
 
-> **Note:** there is no authentication/authorization (no Spring Security) —
-> both the web UI and the REST API are open. Fine for local development;
-> add security before exposing this publicly.
+> **Note:** the REST API requires an **ADMIN** account (HTTP Basic works for
+> command-line clients, e.g. `curl -u admin:admin123 http://localhost:8080/api`).
+> MEMBER accounts cannot use it. The API is exempted from CSRF protection
+> because it is consumed by tools, not by the web forms — all web UI forms
+> remain CSRF-protected.
 
 ## Project Structure
 

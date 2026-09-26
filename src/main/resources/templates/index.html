@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,6 +17,12 @@
             <a class="nav-link text-white fw-semibold" href="/"><i class="bi bi-speedometer2"></i> Dashboard</a>
             <a class="nav-link text-white-50" href="/tables"><i class="bi bi-table"></i> Tables</a>
             <a class="nav-link text-white-50" href="/charts"><i class="bi bi-bar-chart"></i> Charts</a>
+            <span class="navbar-text text-white-50 small">
+                <i class="bi bi-person-circle"></i> <span sec:authentication="name">user</span>
+            </span>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-sm btn-outline-light"><i class="bi bi-box-arrow-right"></i> Logout</button>
+            </form>
         </div>
     </div>
 </nav>
@@ -77,7 +84,7 @@
             <div class="d-flex flex-wrap gap-2">
                 <a class="btn btn-outline-primary" href="/tables"><i class="bi bi-table"></i> Browse data tables</a>
                 <a class="btn btn-outline-success" href="/charts"><i class="bi bi-bar-chart"></i> View charts</a>
-                <a class="btn btn-outline-secondary" href="/api" target="_blank"><i class="bi bi-braces"></i> REST API</a>
+                <a class="btn btn-outline-secondary" sec:authorize="hasRole('ADMIN')" href="/api" target="_blank"><i class="bi bi-braces"></i> REST API</a>
             </div>
         </div>
     </div>

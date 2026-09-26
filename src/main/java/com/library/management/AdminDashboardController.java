@@ -48,6 +48,11 @@ public class AdminDashboardController {
         return "index"; // Θα χρησιμοποιήσει το index.html του SB Admin
     }
 
+    @GetMapping("/login")
+    public String login() {
+        return "login";
+    }
+
     @GetMapping("/tables")
     public String tables(Model model) {
         // Data for DataTables
