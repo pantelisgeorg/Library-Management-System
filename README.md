@@ -80,6 +80,12 @@ There are two roles:
 Borrowing is done **by the admin** on behalf of a member (the "Borrow Book" dialog
 picks a member and an available book).
 
+Members manage their own credentials on the **My Profile** page (click your
+username in the navbar): change email and password — the current password is
+required to confirm any change. The admin can edit any account (username,
+email, role, password reset) from the Users table, so members never have to
+reveal their password to anyone.
+
 Seeded demo accounts:
 
 | Username  | Password  | Role |
@@ -112,8 +118,10 @@ Then open:
 - **Books** — add (modal form: title, ISBN, published date, genre, copies,
   summary) and delete (removes borrow history and author links first)
 - **Authors** — add and delete (join rows cleaned up automatically)
-- **Users** — add (role picker: Member / Librarian / Admin, duplicate
-  username/email protection) and delete (removes borrow history first)
+- **Users** (admin only) — add (Member / Admin role picker, duplicate
+  username/email protection), edit (username, email, role, optional password
+  reset) and delete (active borrows are returned to stock first, then the
+  borrow history is removed)
 - **Borrowings** — "Borrow Book" dialog (member + available-book dropdowns,
   due date = +14 days, decrements available copies) and "Return" per row
   (sets return date, restores the copy)

@@ -4,6 +4,7 @@ import com.library.management.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +36,9 @@ public class AdminDashboardController {
 
     @Autowired
     private BookAuthorRepository bookAuthorRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @GetMapping("/")
     public String index(Model model) {
@@ -163,7 +167,7 @@ public class AdminDashboardController {
         }
         User user = new User();
         user.setUsername(username);
-        user.setPassword(password);
+        user.setPassword(passwordEncoder.encode(password)); // BCrypt-hashed at creation time
         user.setEmail(email);
         user.setRole(User.Role.valueOf(role));
         user.setCreatedAt(Instant.now());
@@ -172,11 +176,57 @@ public class AdminDashboardController {
         return "redirect:/tables";
     }
 
+    @PostMapping("/users/{id}/edit")
+    public String editUser(@PathVariable Long id,
+                           @RequestParam String username,
+                           @RequestParam String email,
+                           @RequestParam String role,
+                           @RequestParam(required = false) String password,
+                           RedirectAttributes redirectAttributes) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            redirectAttributes.addFlashAttribute("error", "User not found");
+            return "redirect:/tables";
+        }
+        if (username == null || username.isBlank()) {
+            redirectAttributes.addFlashAttribute("error", "Username is required");
+            return "redirect:/tables";
+        }
+        User byUsername = userRepository.findByUsername(username).orElse(null);
+        if (byUsername != null && !byUsername.getId().equals(user.getId())) {
+            redirectAttributes.addFlashAttribute("error", "Username \"" + username + "\" already exists");
+            return "redirect:/tables";
+        }
+        User byEmail = userRepository.findByEmail(email).orElse(null);
+        if (byEmail != null && !byEmail.getId().equals(user.getId())) {
+            redirectAttributes.addFlashAttribute("error", "Email \"" + email + "\" already exists");
+            return "redirect:/tables";
+        }
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setRole(User.Role.valueOf(role));
+        // Optional password reset: blank means "keep the current password"
+        if (password != null && !password.isBlank()) {
+            user.setPassword(passwordEncoder.encode(password));
+        }
+        userRepository.save(user);
+        redirectAttributes.addFlashAttribute("message", "User \"" + username + "\" updated");
+        return "redirect:/tables";
+    }
+
     @PostMapping("/users/{id}/delete")
     public String deleteUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         User user = userRepository.findById(id).orElse(null);
         if (user != null) {
-            // Delete the user's borrow history first (FK constraint)
+            // Return any books the user still has out (restore available copies),
+            // then delete the borrow history first (FK constraint).
+            for (Borrowing borrowing : borrowingRepository.findByUserId(id)) {
+                if (borrowing.getStatus() == Borrowing.Status.BORROWED) {
+                    Book book = borrowing.getBook();
+                    book.setAvailableCopies(book.getAvailableCopies() + 1);
+                    bookRepository.save(book);
+                }
+            }
             borrowingRepository.deleteAll(borrowingRepository.findByUserId(id));
             userRepository.deleteById(id);
             redirectAttributes.addFlashAttribute("message", "User \"" + user.getUsername() + "\" deleted");

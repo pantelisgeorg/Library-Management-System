@@ -18,7 +18,7 @@
             <a class="nav-link text-white-50" href="/tables"><i class="bi bi-table"></i> Tables</a>
             <a class="nav-link text-white-50" href="/charts"><i class="bi bi-bar-chart"></i> Charts</a>
             <span class="navbar-text text-white-50 small">
-                <i class="bi bi-person-circle"></i> <span sec:authentication="name">user</span>
+                <i class="bi bi-person-circle"></i> <a class="text-white-50 text-decoration-none" href="/profile" sec:authentication="name">user</a>
             </span>
             <form th:action="@{/logout}" method="post">
                 <button type="submit" class="btn btn-sm btn-outline-light"><i class="bi bi-box-arrow-right"></i> Logout</button>
