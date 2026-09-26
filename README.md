@@ -136,6 +136,23 @@ Log in as `admin` first, then **take ownership of the instance**:
 > The seeded passwords are for local development only — never keep them on a
 > publicly deployed instance.
 
+### Disabling demo seeding (production)
+
+The demo data is controlled by `app.seed-demo-data` in
+`application.properties` (default `true` for local development):
+
+```properties
+app.seed-demo-data=false   # never create demo books/authors or demo accounts
+```
+
+With it disabled, deleting a demo account sticks — nothing reappears on
+restart. **Important:** on an *empty* database with seeding disabled there
+are no users at all, so nobody can log in — create your real admin account
+first (e.g. run once with seeding enabled, change the admin password, then
+disable seeding and restart). The legacy-data migrations (re-hashing
+plain-text passwords, demoting old LIBRARIAN accounts) always run,
+regardless of this flag.
+
 ## Web UI Features (`/tables`)
 
 - **Books** — add (modal form: title, ISBN, published date, genre, copies,

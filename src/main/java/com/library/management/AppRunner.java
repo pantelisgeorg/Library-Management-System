@@ -1,6 +1,7 @@
 package com.library.management;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
@@ -39,6 +40,11 @@ public class AppRunner implements ApplicationRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    /** Demo data seeding switch: set app.seed-demo-data=false (e.g. in production)
+     *  to never create demo books/authors or the demo admin/john.doe accounts. */
+    @Value("${app.seed-demo-data:true}")
+    private boolean seedDemoData;
+
     @Override
     @Transactional  // one persistence context: entities stay managed so the
     // ManyToMany collections set below actually flush the join rows at commit
@@ -54,6 +60,14 @@ public class AppRunner implements ApplicationRunner {
             if (pw != null && !pw.startsWith("$2")) {
                 user.setPassword(passwordEncoder.encode(pw));
             }
+        }
+
+        // Demo data seeding is optional. With app.seed-demo-data=false the app
+        // never creates demo books/authors or the demo accounts (admin/john.doe).
+        // NOTE: on an EMPTY database with seeding disabled there are no users at
+        // all — create an admin account before flipping this off in production.
+        if (!seedDemoData) {
+            return;
         }
 
         // Seed demo books/authors only once (avoid duplicates on every restart)

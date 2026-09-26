@@ -61,3 +61,9 @@ spring.devtools.livereload.enabled=true
 spring.thymeleaf.cache=false
 spring.thymeleaf.mode=HTML
 spring.thymeleaf.check-template-location=true
+
+# Demo data seeding: creates demo books/authors and the demo accounts
+# (admin/admin123, john.doe/user123) on startup if they are missing.
+# Set to false in production — and create your real admin account first,
+# because with seeding disabled an empty database has no users at all.
+app.seed-demo-data=true
