@@ -104,7 +104,7 @@ Seeded demo accounts:
 mvn spring-boot:run
 ```
 
-Then open:
+Then open (a login is required for every page):
 
 | Page        | URL                  | Description                                        |
 |-------------|----------------------|----------------------------------------------------|
@@ -112,6 +112,29 @@ Then open:
 | Data Tables | http://localhost:8080/tables       | Full management UI (see below)                     |
 | Charts      | http://localhost:8080/charts       | Activity charts (Chart.js)                        |
 | REST API    | http://localhost:8080/api          | HAL index of the auto-generated REST API           |
+
+Open http://localhost:8080 — you will be redirected to the login page.
+
+### First login (fresh database)
+
+On the very first start with an empty database, the seeder (`AppRunner`)
+automatically creates the demo accounts below and a sample borrowing, so you
+can log in immediately — no manual user setup is needed:
+
+| Username  | Password  | Role |
+|-----------|-----------|------|
+| admin     | admin123  | ADMIN |
+| john.doe  | user123   | MEMBER |
+
+Log in as `admin` first, then **take ownership of the instance**:
+
+1. Change the admin password (your **My Profile** page, or the Users table).
+2. Delete the `john.doe` demo account or repurpose it — it is only demo data.
+3. Create real member accounts from the Users table as needed.
+
+> The demo accounts are re-created if missing (the seeder is idempotent).
+> The seeded passwords are for local development only — never keep them on a
+> publicly deployed instance.
 
 ## Web UI Features (`/tables`)
 
