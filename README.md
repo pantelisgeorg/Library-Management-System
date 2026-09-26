@@ -19,6 +19,30 @@ auto-generated REST API backed by PostgreSQL.
 - Maven 3.8+ (a system-wide `mvn` is used; there is no bundled wrapper)
 - A running PostgreSQL server
 
+## Configuration
+
+`application.properties` is **gitignored** because it holds your local database
+credentials. A committed template,
+[`src/main/resources/application.properties.template`](src/main/resources/application.properties.template),
+contains all required settings with placeholder values.
+
+After cloning, create your local config from the template:
+
+```bash
+cp src/main/resources/application.properties.template \
+   src/main/resources/application.properties
+```
+
+Then edit the copy and set your connection details:
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/library_db
+spring.datasource.username=user
+spring.datasource.password=password
+```
+
+Never commit `application.properties` — only the template is tracked.
+
 ## Database Setup
 
 The app connects to a database named `library_db` and stores all tables in a
@@ -34,14 +58,8 @@ GRANT ALL PRIVILEGES ON DATABASE library_db TO user;
 GRANT ALL ON SCHEMA libdb TO user;
 ```
 
-Then set the connection details in
-`src/main/resources/application.properties`:
-
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/library_db
-spring.datasource.username=user
-spring.datasource.password=password
-```
+With those credentials in place, set them in your local
+`src/main/resources/application.properties` (see [Configuration](#configuration)).
 
 On first start, Hibernate creates all tables (`spring.jpa.hibernate.ddl-auto=update`)
 and the seeder (`AppRunner`) inserts demo data once: 2 authors, 2 books, 3 users
@@ -108,7 +126,8 @@ src/main/java/com/library/management/
   BookAuthor, BookAuthorId                   # join-table entity
   *Repository                               # Spring Data repositories
 src/main/resources/
-  application.properties                    # config (DB credentials, JPA, logging)
+  application.properties.template          # committed config template (copy to application.properties)
+  application.properties                   # local config (gitignored, holds DB credentials)
   templates/index.html                      # dashboard
   templates/tables.html                     # management UI (modals, action buttons)
   templates/charts.html                     # Chart.js page
